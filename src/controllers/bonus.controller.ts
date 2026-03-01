@@ -23,9 +23,23 @@ export async function spendUserBonus(
       throw createAppError('amount must be a positive integer', 400);
     }
 
-    await spendBonus(req.params.id, amount);
+    // Получаем requestId
+    const requestId =
+      req.headers['idempotency-key'] || req.body?.requestId;
 
-    res.json({ success: true });
+    if (!requestId) {
+      throw createAppError('requestId is required', 400);
+    }
+
+    // Пока передаем как есть (ошибка нормально)
+    const result = await spendBonus(
+      req.params.id,
+      amount,
+      requestId as string
+    );
+
+    res.json(result);
+
   } catch (error) {
     next(error);
   }
